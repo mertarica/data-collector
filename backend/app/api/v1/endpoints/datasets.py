@@ -9,13 +9,11 @@ router = APIRouter()
 
 @router.get("/", response_model=List[DatasetInfo])
 async def get_datasets(
-    limit: int = Query(
-        50, ge=1, le=200, description="Number of datasets to return"),
     factory: INEProviderFactory = Depends(get_ine_factory)
 ):
-    """Get available datasets from INE"""
+    """Get all available datasets from INE"""
     try:
-        datasets = factory.get_available_datasets(limit=limit)
+        datasets = factory.get_available_datasets()
 
         return [
             DatasetInfo(

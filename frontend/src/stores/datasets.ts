@@ -21,12 +21,12 @@ export const useDatasetsStore = defineStore('datasets', () => {
   const hasData = computed(() => rawData.value !== null || processedData.value !== null)
 
   // Actions
-  async function fetchDatasets(limit: number = 50) {
+  async function fetchDatasets() {
     loading.value = true
     error.value = null
     try {
       console.log('Fetching datasets...') // Debug log
-      const data = await apiService.getDatasets(limit)
+      const data = await apiService.getDatasets()
       console.log('Fetched datasets:', data.length) // Debug log
       datasets.value = data
     } catch (err) {

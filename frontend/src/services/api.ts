@@ -44,8 +44,8 @@ class ApiService {
     return response.json()
   }
 
-  async getDatasets(limit: number = 50): Promise<Dataset[]> {
-    return this.request<Dataset[]>(`/datasets/?limit=${limit}`)
+  async getDatasets(): Promise<Dataset[]> {
+    return this.request<Dataset[]>(`/datasets`)
   }
 
   async searchDatasets(query: string, limit: number = 20): Promise<Dataset[]> {

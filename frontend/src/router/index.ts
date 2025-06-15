@@ -21,14 +21,6 @@ const router = createRouter({
       },
     },
     {
-      path: '/data-viewer',
-      name: 'data-viewer',
-      component: () => import('../views/DataViewerView.vue'),
-      meta: {
-        title: 'Data Viewer',
-      },
-    },
-    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue'),

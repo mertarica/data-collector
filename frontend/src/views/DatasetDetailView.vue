@@ -1,276 +1,149 @@
 <template>
-  <div class="space-y-6">
-    <!-- Back Button -->
-    <div>
-      <button @click="router.back()" class="flex items-center text-gray-600 hover:text-gray-900">
-        ← Back to datasets
-      </button>
-    </div>
-
-    <!-- Dataset Header -->
-    <div v-if="store.currentDataset" class="card">
-      <div class="flex items-start justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">
-            {{ store.currentDataset.codigo }}
-          </h1>
-          <p class="text-gray-600 mb-4">{{ store.currentDataset.nombre }}</p>
-          <div class="flex items-center space-x-4 text-sm text-gray-500">
-            <span
-              v-if="store.currentDataset.cod_ioe"
-              class="bg-blue-100 text-blue-800 px-3 py-1 rounded"
-            >
-              IOE: {{ store.currentDataset.cod_ioe }}
-            </span>
-            <a
-              v-if="store.currentDataset.url"
-              :href="store.currentDataset.url"
-              target="_blank"
-              class="text-blue-600 hover:text-blue-800"
-            >
-              📄 Documentation
-            </a>
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Enhanced Header -->
+        <div class="mb-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <BackButton text="Back to Datasets" />
+            
+            <div v-if="currentDataset" class="flex items-center space-x-4">
+              <button 
+                @click="exportJson" 
+                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200" 
+                :disabled="!store.rawData"
+              >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Export JSON
+              </button>
+            </div>
+          </div>
+  
+          <!-- Dataset Info Card -->
+          <div v-if="currentDataset" class="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-3">
+                  <span class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 text-sm font-mono font-medium rounded-lg">
+                    {{ currentDataset.codigo }}
+                  </span>
+                  <span v-if="currentDataset.cod_ioe" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+                    ID: {{ currentDataset.cod_ioe }}
+                  </span>
+                </div>
+                <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 leading-relaxed">
+                  {{ currentDataset.nombre }}
+                </h1>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Data Actions -->
-    <div class="card">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Data Operations</h2>
-      <div class="flex space-x-4">
-        <button
-          @click="loadRawData"
-          :disabled="store.loading"
-          class="btn-primary"
-          :class="{ 'opacity-50 cursor-not-allowed': store.loading }"
-        >
-          <span v-if="store.loading && isLoadingRaw" class="mr-2">
-            <div
-              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block"
-            ></div>
-          </span>
-          📥 {{ store.loading && isLoadingRaw ? 'Loading...' : 'Fetch Raw Data' }}
-        </button>
-        <button
-          @click="loadProcessedData"
-          :disabled="store.loading"
-          class="btn-primary"
-          :class="{ 'opacity-50 cursor-not-allowed': store.loading }"
-        >
-          <span v-if="store.loading && isLoadingProcessed" class="mr-2">
-            <div
-              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block"
-            ></div>
-          </span>
-          ⚙️ {{ store.loading && isLoadingProcessed ? 'Loading...' : 'Fetch Processed Data' }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="store.loading" class="card">
-      <div class="flex items-center space-x-3">
-        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-        <span>
-          {{
-            isLoadingRaw
-              ? 'Fetching raw data...'
-              : isLoadingProcessed
-                ? 'Processing data...'
-                : 'Loading...'
-          }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Error State -->
-    <div v-if="store.error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <div class="flex">
-        <div class="text-red-600">❌</div>
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">Error</h3>
-          <div class="mt-2 text-sm text-red-700">{{ store.error }}</div>
-          <div class="mt-3 space-x-2">
-            <button @click="loadRawData" class="text-sm text-red-600 hover:text-red-800 underline">
-              Try Raw Data Again
-            </button>
-            <button
-              @click="loadProcessedData"
-              class="text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Try Processed Data Again
-            </button>
+  
+        <!-- Loading State -->
+        <LoadingState
+          v-if="store.loading"
+          title="Loading dataset..."
+          subtitle="Fetching data from INE API"
+        />
+  
+        <!-- Error State -->
+        <ErrorState
+          v-else-if="store.error"
+          title="Failed to load data"
+          :message="store.error"
+          @retry="loadData"
+        />
+  
+        <!-- Data Display -->
+        <div v-else-if="store.rawData" class="space-y-6">
+          <!-- Data Summary Card -->
+          <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div class="flex items-center space-x-4">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Data Successfully Loaded</h3>
+                  <p class="text-gray-600">
+                    <span class="font-medium text-blue-600">{{ store.rawData.record_count.toLocaleString() }}</span> 
+                    records retrieved from INE API
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
+  
+          <!-- JSON Data Display -->
+          <JsonViewer
+            :data="store.rawData.raw_data"
+            title="Raw JSON Data"
+            :filename="`${datasetCode}_data.json`"
+          />
         </div>
+  
+        <!-- Empty State -->
+        <EmptyState
+          v-else
+          title="No data available"
+          description="This dataset might not have any data available or there could be an issue with the data source."
+          :show-primary-action="true"
+          primary-action-text="Retry Loading"
+          @primary-action="loadData"
+        />
       </div>
     </div>
-
-    <!-- Raw Data Display -->
-    <div v-if="store.rawData" class="card">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Raw Data</h2>
-      <div class="mb-4 flex items-center space-x-4 text-sm text-gray-600">
-        <span>Records: {{ store.rawData.record_count || 'N/A' }}</span>
-        <span v-if="store.rawData.message">{{ store.rawData.message }}</span>
-        <button @click="store.clearData" class="text-red-600 hover:text-red-800 text-xs">
-          Clear Data
-        </button>
-      </div>
-      <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-auto">
-        <pre class="text-xs">{{ JSON.stringify(store.rawData.raw_data, null, 2) }}</pre>
-      </div>
-    </div>
-
-    <!-- Processed Data Display -->
-    <div v-if="store.processedData" class="card">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Processed Data</h2>
-      <div class="mb-4 flex items-center justify-between">
-        <div class="flex items-center space-x-4 text-sm text-gray-600">
-          <span>Records: {{ store.processedData.record_count }}</span>
-          <span>Columns: {{ store.processedData.columns?.length || 0 }}</span>
-        </div>
-        <div class="space-x-2">
-          <button @click="exportData" class="btn-secondary text-xs">💾 Export CSV</button>
-          <button @click="store.clearData" class="text-red-600 hover:text-red-800 text-xs">
-            Clear Data
-          </button>
-        </div>
-      </div>
-
-      <!-- Data Table -->
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th
-                v-for="column in store.processedData.columns"
-                :key="column"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                {{ column }}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr
-              v-for="(row, index) in store.processedData.processed_data.slice(0, 50)"
-              :key="index"
-              class="hover:bg-gray-50"
-            >
-              <td
-                v-for="column in store.processedData.columns"
-                :key="column"
-                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-              >
-                {{ row[column] }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div
-        v-if="store.processedData.processed_data.length > 50"
-        class="mt-4 text-sm text-gray-500 text-center"
-      >
-        Showing first 50 records of {{ store.processedData.record_count }}
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useDatasetsStore } from '../stores/datasets'
-
-const route = useRoute()
-const router = useRouter()
-const store = useDatasetsStore()
-
-const datasetCode = route.params.code as string
-
-// Local loading states
-const isLoadingRaw = ref(false)
-const isLoadingProcessed = ref(false)
-
-const loadRawData = async () => {
-  console.log('🔄 Loading raw data for:', datasetCode) // Debug log
-  isLoadingRaw.value = true
-  isLoadingProcessed.value = false
-  try {
-    await store.fetchRawData(datasetCode)
-    console.log('✅ Raw data loaded successfully') // Debug log
-  } catch (error) {
-    console.error('❌ Failed to load raw data:', error) // Debug log
-  } finally {
-    isLoadingRaw.value = false
-  }
-}
-
-const loadProcessedData = async () => {
-  console.log('🔄 Loading processed data for:', datasetCode) // Debug log
-  isLoadingProcessed.value = true
-  isLoadingRaw.value = false
-  try {
-    await store.fetchProcessedData(datasetCode)
-    console.log('✅ Processed data loaded successfully') // Debug log
-  } catch (error) {
-    console.error('❌ Failed to load processed data:', error) // Debug log
-  } finally {
-    isLoadingProcessed.value = false
-  }
-}
-
-const exportData = () => {
-  if (!store.processedData) return
-
-  const csvContent = [
-    store.processedData.columns.join(','),
-    ...store.processedData.processed_data.map((row: any) =>
-      store.processedData!.columns.map((col) => `"${row[col]}"`).join(','),
-    ),
-  ].join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${datasetCode}_data.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-// Watch store loading state
-watch(
-  () => store.loading,
-  (newVal) => {
-    console.log('🔄 Store loading state changed:', newVal) // Debug log
-    if (!newVal) {
-      isLoadingRaw.value = false
-      isLoadingProcessed.value = false
+  </template>
+  
+  <script setup lang="ts">
+  import { computed, onMounted } from 'vue'
+  import { useRoute } from 'vue-router'
+  import { useDatasetsStore } from '../stores/datasets'
+  
+  // Components
+  import BackButton from '../components/BackButton.vue'
+  import LoadingState from '../components/LoadingState.vue'
+  import ErrorState from '../components/ErrorState.vue'
+  import EmptyState from '../components/EmptyState.vue'
+  import JsonViewer from '../components/JsonViewer.vue'
+  
+  const route = useRoute()
+  const store = useDatasetsStore()
+  
+  const datasetCode = route.params.code as string
+  
+  const currentDataset = computed(() => 
+    store.datasets.find(d => d.codigo === datasetCode)
+  )
+  
+  const loadData = async () => {
+    if (datasetCode) {
+      await store.fetchRawData(datasetCode)
     }
-  },
-)
-
-// Watch for data changes
-watch(
-  () => store.rawData,
-  (newVal) => {
-    console.log('📊 Raw data changed:', !!newVal) // Debug log
-  },
-)
-
-watch(
-  () => store.processedData,
-  (newVal) => {
-    console.log('📊 Processed data changed:', !!newVal) // Debug log
-  },
-)
-
-onMounted(async () => {
-  console.log('📍 DatasetDetailView mounted for:', datasetCode) // Debug log
-  await store.selectDataset(datasetCode)
-  store.clearData()
-})
-</script>
+  }
+  
+  const exportJson = () => {
+    if (!store.rawData) return
+    
+    const dataStr = JSON.stringify(store.rawData.raw_data, null, 2)
+    const blob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${datasetCode}_data.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  
+  onMounted(async () => {
+    // Load datasets if not loaded
+    if (store.datasets.length === 0) {
+      await store.fetchDatasets()
+    }
+    // Load data for this dataset
+    await loadData()
+  })
+  </script>

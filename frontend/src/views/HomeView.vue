@@ -1,136 +1,91 @@
 <template>
-  <div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex justify-between items-center">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">INE Datasets</h1>
-        <p class="mt-2 text-sm text-gray-600">
-          Explore and access Spanish National Statistics Institute datasets
-        </p>
-      </div>
-      <div class="flex items-center space-x-2 text-sm text-gray-500">
-        <span>Total: {{ store.datasetsCount }}</span>
-        <span v-if="store.loading" class="text-blue-600">Loading...</span>
-      </div>
-    </div>
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <!-- Page Header -->
+      <PageHeader
+        title="INE Datasets"
+        :subtitle="`Spanish National Statistics Institute data explorer with ${store.datasetsCount} datasets available`"
+      />
 
-    <!-- Search Bar -->
-    <div class="card">
-      <div class="flex space-x-4">
-        <div class="flex-1">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search datasets by name or code..."
-            class="input-field"
-            @input="handleSearch"
-          />
-        </div>
-        <button
-          @click="handleRefresh"
-          class="btn-secondary"
-          :disabled="store.loading"
-        >
-          🔄 Refresh
-        </button>
-      </div>
-    </div>
+      <!-- Search Bar -->
+      <SearchBar
+        v-model="searchQuery"
+        placeholder="Search datasets by name, code, or ID..."
+        :result-count="filteredDatasets.length"
+      />
 
-    <!-- Error Message -->
-    <div v-if="store.error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <div class="flex">
-        <div class="text-red-600">❌</div>
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">Error</h3>
-          <div class="mt-2 text-sm text-red-700">{{ store.error }}</div>
-        </div>
-      </div>
-    </div>
+      <!-- Loading State -->
+      <LoadingState
+        v-if="store.loading"
+        title="Loading datasets..."
+        subtitle="Fetching the latest data from INE"
+      />
 
-    <!-- Loading State -->
-    <div v-if="store.loading && store.datasets.length === 0" class="card">
-      <div class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p class="mt-2 text-sm text-gray-600">Loading datasets...</p>
-        </div>
-      </div>
-    </div>
+      <!-- Error State -->
+      <ErrorState
+        v-else-if="store.error"
+        :message="store.error"
+        @retry="handleRefresh"
+      />
 
-    <!-- Datasets Grid -->
-    <div v-else-if="store.datasets.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
-        v-for="dataset in store.datasets"
-        :key="dataset.codigo"
-        class="card hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-        @click="viewDataset(dataset)"
-      >
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <h3 class="font-semibold text-gray-900 mb-2">
-              {{ dataset.codigo }}
-            </h3>
-            <p class="text-sm text-gray-600 mb-3 line-clamp-3">
-              {{ dataset.nombre }}
-            </p>
-            <div class="flex items-center space-x-2 text-xs text-gray-500">
-              <span v-if="dataset.cod_ioe" class="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                IOE: {{ dataset.cod_ioe }}
-              </span>
-            </div>
-          </div>
-          <div class="ml-4">
-            <button class="text-blue-600 hover:text-blue-800">
-              →
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <!-- Dataset Grid -->
+      <DatasetGrid
+        v-else-if="filteredDatasets.length > 0"
+        :datasets="filteredDatasets"
+        @dataset-click="viewDataset"
+      />
 
-    <!-- Empty State -->
-    <div v-else-if="!store.loading" class="card">
-      <div class="text-center py-12">
-        <div class="text-6xl mb-4">📊</div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No datasets found</h3>
-        <p class="text-gray-600 mb-4">
-          {{ searchQuery ? 'Try adjusting your search terms' : 'Click refresh to load datasets' }}
-        </p>
-        <button @click="handleRefresh" class="btn-primary">
-          Load Datasets
-        </button>
-      </div>
+      <!-- Empty State -->
+      <EmptyState
+        v-else
+        :title="searchQuery ? 'No datasets found' : 'No datasets available'"
+        :description="searchQuery 
+          ? 'Try adjusting your search terms or browse all available datasets.' 
+          : 'Load the available datasets to get started with data exploration.'"
+        :show-primary-action="!searchQuery"
+        primary-action-text="Load Datasets"
+        :show-secondary-action="!!searchQuery"
+        secondary-action-text="Clear Search"
+        @primary-action="handleRefresh"
+        @secondary-action="searchQuery = ''"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDatasetsStore } from '../stores/datasets'
 import type { Dataset } from '../services/api'
 
+// Components
+import PageHeader from '../components/PageHeader.vue'
+import SearchBar from '../components/SearchBar.vue'
+import LoadingState from '../components/LoadingState.vue'
+import ErrorState from '../components/ErrorState.vue'
+import DatasetGrid from '../components/DatasetGrid.vue'
+import EmptyState from '../components/EmptyState.vue'
+
 const router = useRouter()
 const store = useDatasetsStore()
 
-// Local state
 const searchQuery = ref('')
-const searchTimeout = ref<number | null>(null)
 
-// Methods
-const handleSearch = () => {
-  if (searchTimeout.value) {
-    clearTimeout(searchTimeout.value)
+// Filter datasets based on search
+const filteredDatasets = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return store.datasets
   }
-  
-  searchTimeout.value = setTimeout(() => {
-    if (searchQuery.value.trim()) {
-      store.searchDatasets(searchQuery.value.trim())
-    } else {
-      store.fetchDatasets()
-    }
-  }, 300)
-}
+
+  const query = searchQuery.value.toLowerCase()
+  return store.datasets.filter(
+    (dataset) =>
+      dataset.codigo.toLowerCase().includes(query) ||
+      dataset.nombre.toLowerCase().includes(query) ||
+      (dataset.cod_ioe && dataset.cod_ioe.toLowerCase().includes(query)),
+  )
+})
 
 const handleRefresh = () => {
   searchQuery.value = ''
@@ -141,18 +96,7 @@ const viewDataset = (dataset: Dataset) => {
   router.push(`/dataset/${dataset.codigo}`)
 }
 
-// Lifecycle
-onMounted(async () => {
-  console.log('HomeView mounted, fetching datasets...') // Debug log
-  await store.fetchDatasets()
+onMounted(() => {
+  store.fetchDatasets()
 })
 </script>
-
-<style scoped>
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>
