@@ -48,8 +48,8 @@ class ApiService {
     return this.request<Dataset[]>(`/datasets`)
   }
 
-  async searchDatasets(query: string, limit: number = 20): Promise<Dataset[]> {
-    return this.request<Dataset[]>(`/datasets/search?q=${encodeURIComponent(query)}&limit=${limit}`)
+  async searchDatasets(query: string): Promise<Dataset[]> {
+    return this.request<Dataset[]>(`/datasets/search?q=${encodeURIComponent(query)}`)
   }
 
   async getDatasetInfo(code: string): Promise<Dataset> {
