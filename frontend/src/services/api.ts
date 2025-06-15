@@ -28,20 +28,43 @@ class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
 
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    })
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        ...options,
+      })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`)
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+
+        try {
+          const errorData = await response.json()
+          if (errorData.detail) {
+            errorMessage = errorData.detail
+          }
+        } catch {
+          // If response is not JSON (like HTML error page)
+          const textContent = await response.text()
+          if (textContent.includes('<!DOCTYPE html>')) {
+            errorMessage = `API returned HTML error page (${response.status}). The requested dataset might not exist or the API endpoint is incorrect.`
+          }
+        }
+
+        throw new Error(errorMessage)
+      }
+
+      return response.json()
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(
+          'Unable to connect to the API. Please check if the backend service is running.',
+        )
+      }
+      throw error
     }
-
-    return response.json()
   }
 
   async getDatasets(): Promise<Dataset[]> {

@@ -6,11 +6,10 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <BackButton text="Back to Datasets" />
 
-          <div v-if="currentDataset" class="flex items-center space-x-4">
+          <div v-if="currentDataset && store.rawData" class="flex items-center space-x-4">
             <button
               @click="exportJson"
               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-              :disabled="!store.rawData"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -27,7 +26,7 @@
 
         <!-- Dataset Info Card -->
         <div
-          v-if="currentDataset"
+          v-if="currentDataset || datasetCode"
           class="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50"
         >
           <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -36,17 +35,23 @@
                 <span
                   class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 text-sm font-mono font-medium rounded-lg"
                 >
-                  {{ currentDataset.codigo }}
+                  {{ currentDataset?.codigo || datasetCode }}
                 </span>
                 <span
-                  v-if="currentDataset.cod_ioe"
+                  v-if="currentDataset?.cod_ioe"
                   class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md"
                 >
                   ID: {{ currentDataset.cod_ioe }}
                 </span>
+                <span
+                  v-if="!currentDataset"
+                  class="text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded-md"
+                >
+                  Loading info...
+                </span>
               </div>
               <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 leading-relaxed">
-                {{ currentDataset.nombre }}
+                {{ currentDataset?.nombre || 'Dataset Details' }}
               </h1>
             </div>
           </div>
@@ -66,6 +71,7 @@
         title="Failed to load data"
         :message="store.error"
         @retry="loadData"
+        @go-home="goToHome"
       />
 
       <!-- Data Display -->
@@ -114,14 +120,17 @@
         />
       </div>
 
-      <!-- Empty State -->
+      <!-- Empty State for when there's no error but also no data -->
       <EmptyState
         v-else
         title="No data available"
         description="This dataset might not have any data available or there could be an issue with the data source."
         :show-primary-action="true"
         primary-action-text="Retry Loading"
+        :show-secondary-action="true"
+        secondary-action-text="Browse Datasets"
         @primary-action="loadData"
+        @secondary-action="goToHome"
       />
     </div>
   </div>
@@ -129,7 +138,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useDatasetsStore } from '../stores/datasets'
 
 // Components
@@ -140,6 +149,7 @@ import EmptyState from '../components/EmptyState.vue'
 import JsonViewer from '../components/JsonViewer.vue'
 
 const route = useRoute()
+const router = useRouter()
 const store = useDatasetsStore()
 
 const datasetCode = route.params.code as string
@@ -150,6 +160,10 @@ const loadData = async () => {
   if (datasetCode) {
     await store.fetchRawData(datasetCode)
   }
+}
+
+const goToHome = () => {
+  router.push('/')
 }
 
 const exportJson = () => {
@@ -166,10 +180,14 @@ const exportJson = () => {
 }
 
 onMounted(async () => {
+  // Clear any previous error state
+  store.clearData()
+
   // Load datasets if not loaded
   if (store.datasets.length === 0) {
     await store.fetchDatasets()
   }
+
   // Load data for this dataset
   await loadData()
 })
