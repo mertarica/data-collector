@@ -1,5 +1,6 @@
 import asyncpg
 import logging
+import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -182,12 +183,25 @@ class DatabaseService:
             
             result = []
             for row in rows:
+                data_points = row['data_points']
+                
+                if not data_points or data_points == [None]:
+                    parsed_data_points = []
+                else:
+                    try:
+                        if isinstance(data_points, str):
+                            parsed_data_points = json.loads(data_points)
+                        else:
+                            parsed_data_points = data_points
+                    except (json.JSONDecodeError, TypeError):
+                        parsed_data_points = []
+                
                 data_item = {
                     'code': row['code'],
                     'name': row['name'],
                     'unit_id': row['unit_id'],
                     'scale_id': row['scale_id'],
-                    'data_points': row['data_points'] if row['data_points'] and row['data_points'] != [None] else []
+                    'data_points': parsed_data_points  
                 }
                 result.append(data_item)
             
