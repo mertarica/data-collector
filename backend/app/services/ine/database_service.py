@@ -3,12 +3,13 @@ import logging
 import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 class DatabaseService:
     def __init__(self):
-        self.connection_url =""
+        self.connection_url = settings.DATABASE_URL
     
     async def get_connection(self):
         return await asyncpg.connect(self.connection_url)
