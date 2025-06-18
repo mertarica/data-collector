@@ -1,6 +1,6 @@
 [
   {
-    "Id": 8027,
+    "Table_Id": 8027,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - Situación, expectativas e indice de confianza, Resultados nacionales y por comunidades autónomas",
     "Codigo": "NAC-CCAA",
     "FK_Periodicidad": 3,
@@ -11,7 +11,7 @@
     "Ultima_Modificacion": 1744614000000
   },
   {
-    "Id": 8028,
+    "Table_Id": 8028,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - Situación, expectativas e indice de confianza, Resultados por sectores de actividad",
     "Codigo": "NAC",
     "FK_Periodicidad": 3,
@@ -22,7 +22,7 @@
     "Ultima_Modificacion": 1744614000000
   },
   {
-    "Id": 8029,
+    "Table_Id": 8029,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - Situación, expectativas e indice de confianza, Resultados por tamaño del establecimiento",
     "Codigo": "NAC",
     "FK_Periodicidad": 3,
@@ -33,7 +33,7 @@
     "Ultima_Modificacion": 1744614000000
   },
   {
-    "Id": 47116,
+    "Table_Id": 47116,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - opiniones sobre empleo, Resultados por sectores de actividad",
     "Codigo": "NAC",
     "FK_Periodicidad": 3,
@@ -44,7 +44,7 @@
     "Ultima_Modificacion": 1744614000000
   },
   {
-    "Id": 47117,
+    "Table_Id": 47117,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - opiniones sobre empleo, Resultados por tamaño del establecimiento",
     "Codigo": "NAC",
     "FK_Periodicidad": 3,
@@ -55,7 +55,7 @@
     "Ultima_Modificacion": 1744614000000
   },
   {
-    "Id": 47118,
+    "Table_Id": 47118,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - Opiniones sobre precios, Resultados por sectores de actividad",
     "Codigo": "NAC",
     "FK_Periodicidad": 3,
@@ -66,7 +66,7 @@
     "Ultima_Modificacion": 1744614000000
   },
   {
-    "Id": 47119,
+    "Table_Id": 47119,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - Opiniones sobre precios, Resultados por tamaño del establecimiento",
     "Codigo": "NAC",
     "FK_Periodicidad": 3,
@@ -77,7 +77,7 @@
     "Ultima_Modificacion": 1744614000000
   },
   {
-    "Id": 47120,
+    "Table_Id": 47120,
     "Nombre": "Indicadores de Confianza Empresarial. Base 1º trimestre 2013 - Utilización de la capacidad productiva en la industria",
     "Codigo": "NAC",
     "FK_Periodicidad": 3,

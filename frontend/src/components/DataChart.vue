@@ -109,7 +109,7 @@ const props = defineProps<Props>()
 const chartRef = ref<HTMLCanvasElement>()
 const viewMode = ref<'chart' | 'table'>('chart')
 let chartInstance: Chart | null = null
-
+console.log(props.data);
 // Computed properties
 const sourceData = computed(() => {
   if (!props.data) return []
@@ -157,7 +157,6 @@ const chartData = computed(() => {
 
 const tableData = computed(() => {
   const rows: any[] = []
-
   sourceData.value.forEach((series: any) => {
     if (!series.Data?.length) return
 

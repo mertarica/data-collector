@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     SHARED_DATA_PATH: str = "../shared/data"
     STORAGE_PATH: str = "./storage"
     
+    # Database Configuration
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    
     class Config:
         env_file = ".env"
     
