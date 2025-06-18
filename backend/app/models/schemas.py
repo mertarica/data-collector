@@ -3,11 +3,10 @@ from typing import Optional, List, Dict, Any
 
 
 class DatasetInfo(BaseModel):
-    codigo: str = Field(..., description="Dataset code (e.g., ICE, IPI)")
-    nombre: str = Field(..., description="Dataset name in Spanish")
-    cod_ioe: Optional[str] = Field(None, description="INE internal code")
-    url: Optional[str] = Field(None, description="Dataset documentation URL")
-
+    external_id: str = Field(..., description="Dataset code (e.g., ICE, IPI)")
+    name: str = Field(..., description="Dataset name in Spanish")
+    id: Optional[str] = Field(None, description="INE internal code")
+    dataset_name: Optional[str] = Field(None, description="Dataset description")
 
 class DataResponse(BaseModel):
     codigo: str

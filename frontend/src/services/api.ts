@@ -1,12 +1,12 @@
 export interface Dataset {
-  codigo: string
-  nombre: string
-  cod_ioe?: string
-  url?: string
+  external_id: string
+  name: string
+  id: string
+  dataset_name: string
 }
 
 export interface RawDataResponse {
-  codigo: string
+  code: string
   dataset_name: string
   record_count: number
   raw_data: any[]

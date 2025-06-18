@@ -22,11 +22,7 @@
       />
 
       <!-- Error State -->
-      <ErrorState
-        v-else-if="store.error"
-        :message="store.error"
-        @retry="handleRefresh"
-      />
+      <ErrorState v-else-if="store.error" :message="store.error" @retry="handleRefresh" />
 
       <!-- Dataset Grid -->
       <DatasetGrid
@@ -39,9 +35,11 @@
       <EmptyState
         v-else
         :title="searchQuery ? 'No datasets found' : 'No datasets available'"
-        :description="searchQuery 
-          ? 'Try adjusting your search terms or browse all available datasets.' 
-          : 'Load the available datasets to get started with data exploration.'"
+        :description="
+          searchQuery
+            ? 'Try adjusting your search terms or browse all available datasets.'
+            : 'Load the available datasets to get started with data exploration.'
+        "
         :show-primary-action="!searchQuery"
         primary-action-text="Load Datasets"
         :show-secondary-action="!!searchQuery"
@@ -81,9 +79,9 @@ const filteredDatasets = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return store.datasets.filter(
     (dataset) =>
-      dataset.codigo.toLowerCase().includes(query) ||
-      dataset.nombre.toLowerCase().includes(query) ||
-      (dataset.cod_ioe && dataset.cod_ioe.toLowerCase().includes(query)),
+      dataset.external_id.toLowerCase().includes(query) ||
+      dataset.name.toLowerCase().includes(query) ||
+      dataset.dataset_name.toLowerCase().includes(query),
   )
 })
 
@@ -93,7 +91,7 @@ const handleRefresh = () => {
 }
 
 const viewDataset = (dataset: Dataset) => {
-  router.push(`/dataset/${dataset.codigo}`)
+  router.push(`/dataset/${dataset.external_id}`)
 }
 
 onMounted(() => {

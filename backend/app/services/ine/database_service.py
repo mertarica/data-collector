@@ -65,7 +65,7 @@ class DatabaseService:
         """Get all INE datasets to collect"""
         conn = await self.get_connection()
         try:
-            rows = await conn.fetch("SELECT * FROM ine_datasets ORDER BY id")
+            rows = await conn.fetch("SELECT d.*, ds.name as dataset_name FROM ine_datasets d left join data_sources ds ON CAST( d.data_source_id  AS INTEGER)= ds.id ORDER BY d.id")
             return [dict(row) for row in rows]
         finally:
             await conn.close()
@@ -215,23 +215,17 @@ class DatabaseService:
         try:
             rows = await conn.fetch("""
                 SELECT 
-                    m.dataset_external_id,
                     m.code,
                     m.name as indicator_name,
-                    m.unit_id,
                     u.name as unit_description,
                     e.name as scale_description,
-                    dp.period_index,
-                    f.name,
+                    f.name period,
                     dp.year,
                     ROUND(dp.value,2) as value,
                     CASE 
                         WHEN dp.is_secret = true THEN 'Confidential — not publicly shown'
                         ELSE 'Public data — freely available'
-                    END as data_confidentiality,
-                    m.created_at as metadata_created,
-                    m.updated_at as metadata_updated,
-                    dp.created_at as data_point_created
+                    END as data_confidentiality
                 FROM ine_data_points dp
                 INNER JOIN ine_metadata m ON dp.metadata_id = m.id
                 LEFT JOIN ine_def_frequencies f ON CAST (dp.period_id AS INTEGER) = f.ref_id
@@ -245,18 +239,17 @@ class DatabaseService:
             for row in rows:
                 processed_item = {
                     'code': row['code'],
-                    'name': row['name'],
-                    'total_data_points': row['total_data_points'],
-                    'year_range': {
-                        'min': row['min_year'],
-                        'max': row['max_year']
-                    },
-                    'statistics': {
-                        'average_value': float(row['avg_value']) if row['avg_value'] else None
-                    },
-                    'last_updated': row['updated_at'].isoformat() if row['updated_at'] else None
+                    'indicator_name': row['indicator_name'],
+                    'unit_description': row['unit_description'],
+                    'scale_description': row['scale_description'],
+                    'frequency_name': row['period'],
+                    'year': row['year'],
+                    'value': row['value'],
+                    'data_confidentiality': row['data_confidentiality'],
                 }
                 result.append(processed_item)
+            
+            return result
             
             return result
         finally:

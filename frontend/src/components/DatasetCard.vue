@@ -10,17 +10,13 @@
           class="flex items-center space-x-2 px-2 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800"
         >
           <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-          <span>INE</span>
+          <span>{{ dataset.dataset_name }}</span>
         </div>
 
         <span
           class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 text-sm font-mono font-medium rounded-lg"
         >
-          {{ dataset.codigo }}
-        </span>
-
-        <span v-if="dataset.cod_ioe" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
-          ID: {{ dataset.cod_ioe }}
+          {{ dataset.external_id }}
         </span>
       </div>
 
@@ -42,7 +38,7 @@
     <h3
       class="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors duration-200 leading-relaxed mb-3"
     >
-      {{ dataset.nombre }}
+      {{ dataset.name }}
     </h3>
 
     <div class="mt-4 pt-4 border-t border-gray-100">

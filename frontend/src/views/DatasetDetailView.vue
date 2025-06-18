@@ -33,17 +33,11 @@
                 <span
                   class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 text-sm font-mono font-medium rounded-lg"
                 >
-                  {{ currentDataset?.codigo || datasetCode }}
-                </span>
-                <span
-                  v-if="currentDataset?.cod_ioe"
-                  class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md"
-                >
-                  ID: {{ currentDataset.cod_ioe }}
+                  {{ currentDataset?.external_id || datasetCode }}
                 </span>
               </div>
               <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 leading-relaxed">
-                {{ currentDataset?.nombre || 'Dataset Details' }}
+                {{ currentDataset?.name || 'Dataset Details' }}
               </h1>
             </div>
 
@@ -79,29 +73,6 @@
 
       <!-- Data Display -->
       <div v-else-if="currentData" class="space-y-6">
-        <!-- Data Summary -->
-        <div
-          class="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50"
-        >
-          <div class="flex items-center space-x-4">
-            <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl">
-              <svg
-                class="w-6 h-6 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
         <!-- Data Chart -->
         <DataChart :data="currentData" :data-type="dataType" />
 
@@ -150,7 +121,7 @@ const datasetCode = route.params.code as string
 const dataType = ref<'raw' | 'processed'>('raw')
 
 // Computed properties
-const currentDataset = computed(() => store.datasets.find((d) => d.codigo === datasetCode))
+const currentDataset = computed(() => store.datasets.find((d) => d.external_id === datasetCode))
 
 const currentData = computed(() => (dataType.value === 'raw' ? store.rawData : store.processedData))
 

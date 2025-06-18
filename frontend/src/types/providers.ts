@@ -9,13 +9,10 @@ export interface DataProvider {
 }
 
 export interface Dataset {
-  codigo: string
-  nombre: string
-  cod_ioe?: string
-  url?: string
-  provider?: string // Optional since API doesn't return this
-  category?: string
-  lastUpdated?: string
+  external_id: string
+  name: string
+  dataset_name?: string
+  id?: string
 }
 
 export interface ProviderStats {
@@ -25,7 +22,7 @@ export interface ProviderStats {
 }
 
 export interface RawDataResponse {
-  codigo: string
+  code: string
   dataset_name: string
   record_count: number
   raw_data: any[]

@@ -13,10 +13,10 @@ async def get_datasets():
         
         return [
             DatasetInfo(
-                codigo=dataset.get('external_id', ''),
-                nombre=dataset.get('name', ''),
-                cod_ioe=str(dataset.get('id', '')),
-                url=None
+                external_id=dataset.get('external_id', ''),
+                name=dataset.get('name', ''),
+                id=str(dataset.get('id', '')),
+                dataset_name=str(dataset.get('dataset_name', '')),
             )
             for dataset in datasets
         ]
@@ -38,10 +38,10 @@ async def search_datasets(
         
         return [
             DatasetInfo(
-                codigo=dataset.get('external_id', ''),
-                nombre=dataset.get('name', ''),
-                cod_ioe=str(dataset.get('id', '')),
-                url=None
+                external_id=dataset.get('external_id', ''),
+                name=dataset.get('name', ''),
+                id=str(dataset.get('id', '')),
+                dataset_name=str(dataset.get('dataset_name', '')),
             )
             for dataset in datasets
         ]
