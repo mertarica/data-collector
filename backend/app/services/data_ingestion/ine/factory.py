@@ -12,14 +12,14 @@ class INEProviderFactory:
         self.code_to_id = self._create_code_mapping()
 
     def _load_table_list(self) -> List[Dict]:
-        """Load TABLELIST.json from shared directory"""
+        """Load ice_table_list.json from shared directory"""
         try:
-            # Try different possible paths
+            # Try different possible paths for the new file
             possible_paths = [
-                os.path.join(settings.SHARED_DATA_PATH, "TABLELIST.json"),
-                "../../shared/data/TABLELIST.json",
-                "../shared/data/TABLELIST.json",
-                "shared/data/TABLELIST.json"
+                os.path.join(settings.SHARED_DATA_PATH, "ice_table_list.json"),
+                "../../shared/data/ice_table_list.json",
+                "../shared/data/ice_table_list.json",
+                "shared/data/ice_table_list.json"
             ]
 
             for path in possible_paths:
@@ -29,19 +29,19 @@ class INEProviderFactory:
                         return json.load(f)
 
             # If not found, return empty list
-            print("⚠️  TABLELIST.json not found, using empty dataset list")
+            print("⚠️  ice_table_list.json not found, using empty dataset list")
             return []
 
         except Exception as e:
-            print(f"❌ Error loading TABLELIST.json: {e}")
+            print(f"❌ Error loading ice_table_list.json: {e}")
             return []
 
     def _create_code_mapping(self) -> Dict[str, str]:
-        """Create mapping from dataset code to IOE table ID"""
+        """Create mapping from dataset code to table ID"""
         return {
-            item['Codigo']: item['Cod_IOE']
+            item['Codigo']: str(item['Id'])
             for item in self.table_list
-            if item.get('Cod_IOE')
+            if item.get('Id')
         }
 
     def create_provider(self, dataset_code: str) -> INEProvider:
@@ -67,8 +67,14 @@ class INEProviderFactory:
     def get_available_datasets(self, limit: Optional[int] = None) -> List[Dict]:
         """Get all available datasets"""
         datasets = [
-            item for item in self.table_list
-            if item.get('Cod_IOE')
+            {
+                'Codigo': item.get('Codigo'),
+                'Nombre': item.get('Nombre'),
+                'Cod_IOE': str(item.get('Id')),  # Map Id to Cod_IOE for compatibility
+                'Url': None  # Not available in ice_table_list.json
+            }
+            for item in self.table_list
+            if item.get('Id') and item.get('Codigo')
         ]
 
         if limit:
@@ -82,12 +88,17 @@ class INEProviderFactory:
         results = []
 
         for item in self.table_list:
-            if item.get('Cod_IOE'):
+            if item.get('Id') and item.get('Codigo'):
                 codigo = item.get('Codigo', '').lower()
                 nombre = item.get('Nombre', '').lower()
 
                 if query_lower in codigo or query_lower in nombre:
-                    results.append(item)
+                    results.append({
+                        'Codigo': item.get('Codigo'),
+                        'Nombre': item.get('Nombre'),
+                        'Cod_IOE': str(item.get('Id')),
+                        'Url': None
+                    })
 
         if limit:
             results = results[:limit]
@@ -98,5 +109,10 @@ class INEProviderFactory:
         """Get information about a specific dataset"""
         for item in self.table_list:
             if item.get('Codigo') == dataset_code:
-                return item
+                return {
+                    'Codigo': item.get('Codigo'),
+                    'Nombre': item.get('Nombre'),
+                    'Cod_IOE': str(item.get('Id')),
+                    'Url': None
+                }
         return None

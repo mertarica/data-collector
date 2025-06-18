@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { apiService } from '../services/api'
-import type { Dataset, RawDataResponse } from '../services/api'
+import type { Dataset, RawDataResponse, ProcessedDataResponse } from '../services/api'
 
 export const useDatasetsStore = defineStore('datasets', () => {
   // State
   const datasets = ref<Dataset[]>([])
   const rawData = ref<RawDataResponse | null>(null)
+  const processedData = ref<ProcessedDataResponse | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -42,8 +43,24 @@ export const useDatasetsStore = defineStore('datasets', () => {
     }
   }
 
+  async function fetchProcessedData(codigo: string) {
+    loading.value = true
+    error.value = null
+    processedData.value = null
+
+    try {
+      const data = await apiService.getProcessedData(codigo)
+      processedData.value = data
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error'
+    } finally {
+      loading.value = false
+    }
+  }
+
   function clearData() {
     rawData.value = null
+    processedData.value = null
     error.value = null
   }
 
@@ -51,6 +68,7 @@ export const useDatasetsStore = defineStore('datasets', () => {
     // State
     datasets,
     rawData,
+    processedData,
     loading,
     error,
     // Getters
@@ -58,6 +76,7 @@ export const useDatasetsStore = defineStore('datasets', () => {
     // Actions
     fetchDatasets,
     fetchRawData,
+    fetchProcessedData,
     clearData,
   }
 })

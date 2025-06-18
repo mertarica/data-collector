@@ -5,7 +5,7 @@ import os
 class Settings(BaseSettings):
     # API Configuration
     API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Augusta Data Collector"
+    PROJECT_NAME: str = "Data Collector"
     VERSION: str = "1.0.0"
     
     # Server Configuration

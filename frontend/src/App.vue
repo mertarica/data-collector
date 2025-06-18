@@ -22,7 +22,7 @@
             <div class="hidden sm:block">
               <span
                 class="font-bold text-xl bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
-                >Augusta Data</span
+                >Data Collector</span
               >
               <div class="text-xs text-gray-500 font-medium">INE Data Explorer</div>
             </div>

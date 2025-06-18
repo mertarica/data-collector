@@ -1,0 +1,90 @@
+[
+  {
+    "Id": 8027,
+    "Nombre": "Resultados nacionales y por comunidades autónomas",
+    "Codigo": "NAC-CCAA",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2013",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  },
+  {
+    "Id": 47116,
+    "Nombre": "Resultados por sectores de actividad",
+    "Codigo": "NAC",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2021",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  },
+  {
+    "Id": 47118,
+    "Nombre": "Resultados por sectores de actividad",
+    "Codigo": "NAC",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2021",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  },
+  {
+    "Id": 47120,
+    "Nombre": "Utilización de la capacidad productiva en la industria",
+    "Codigo": "NAC",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2021",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  },
+  {
+    "Id": 8028,
+    "Nombre": "Resultados por sectores de actividad",
+    "Codigo": "NAC",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2013",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  },
+  {
+    "Id": 47117,
+    "Nombre": "Resultados por tamaño del establecimiento",
+    "Codigo": "NAC",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2021",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  },
+  {
+    "Id": 47119,
+    "Nombre": "Resultados por tamaño del establecimiento",
+    "Codigo": "NAC",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2021",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  },
+  {
+    "Id": 8029,
+    "Nombre": "Resultados por tamaño del establecimiento.",
+    "Codigo": "NAC",
+    "FK_Periodicidad": 3,
+    "FK_Publicacion": 61,
+    "FK_Periodo_ini": 19,
+    "Anyo_Periodo_ini": "2013",
+    "FechaRef_fin": "null",
+    "Ultima_Modificacion": 1744614000000
+  }
+]

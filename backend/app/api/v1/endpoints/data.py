@@ -1,89 +1,85 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.models.schemas import RawDataResponse, ProcessedDataResponse
 from app.services.data_ingestion.ine.factory import INEProviderFactory
 from app.api.deps import get_ine_factory
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
-
-@router.get("/raw/{dataset_code}", response_model=RawDataResponse)
-async def get_raw_data(
-    dataset_code: str,
-    factory: INEProviderFactory = Depends(get_ine_factory)
-):
-    """Fetch raw data from INE API for given dataset code"""
+@router.get("/raw/{dataset_code}")
+async def get_raw_data(dataset_code: str):
+    """Get raw INE data"""
     try:
-        # Create provider
+        logger.info(f"Getting raw data for dataset: {dataset_code}")
+        factory = INEProviderFactory()
         provider = factory.create_provider(dataset_code)
-
-        # Fetch raw data
-        raw_data = await provider.fetch_raw_data()
-
-        return RawDataResponse(
-            codigo=dataset_code,
-            dataset_name=provider.dataset_name,
-            record_count=len(raw_data) if isinstance(raw_data, list) else 1,
-            raw_data=raw_data,
-            message=f"Successfully fetched raw data for {dataset_code}"
-        )
-
+        
+        data = provider.get_data()
+        
+        if data.get("status") == "error":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Error fetching raw data: {data.get('error')}"
+            )
+        
+        return data
+        
     except ValueError as e:
+        logger.error(f"ValueError for dataset {dataset_code}: {e}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        logger.error(f"Unexpected error for dataset {dataset_code}: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to fetch raw data: {str(e)}"
+            detail=f"Internal server error: {str(e)}"
         )
 
-
-@router.get("/processed/{dataset_code}", response_model=ProcessedDataResponse)
-async def get_processed_data(
-    dataset_code: str,
-    factory: INEProviderFactory = Depends(get_ine_factory)
-):
-    """Fetch and process data from INE API for given dataset code"""
+@router.get("/processed/{dataset_code}")
+async def get_processed_data(dataset_code: str):
+    """Get processed INE data with enriched metadata"""
     try:
-        # Create provider
+        logger.info(f"Getting processed data for dataset: {dataset_code}")
+        factory = INEProviderFactory()
         provider = factory.create_provider(dataset_code)
-
-        # Fetch raw data
-        raw_data = await provider.fetch_raw_data()
-
-        # Process to DataFrame
-        df = provider.parse_to_dataframe(raw_data)
-
-        return ProcessedDataResponse(
-            codigo=dataset_code,
-            dataset_name=provider.dataset_name,
-            record_count=len(df),
-            processed_data=df.to_dict('records'),
-            columns=df.columns.tolist(),
-            message=f"Successfully processed {len(df)} records for {dataset_code}"
-        )
-
+        
+        data = provider.get_processed_data()
+        
+        if data.get("status") == "error":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Error fetching processed data: {data.get('error')}"
+            )
+        
+        return data
+        
     except ValueError as e:
+        logger.error(f"ValueError for dataset {dataset_code}: {e}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        logger.error(f"Unexpected error for dataset {dataset_code}: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to process data: {str(e)}"
+            detail=f"Internal server error: {str(e)}"
         )
-
 
 @router.get("/info/{dataset_code}")
-async def get_provider_info(
-    dataset_code: str,
-    factory: INEProviderFactory = Depends(get_ine_factory)
-):
-    """Get provider information for a dataset"""
+async def get_dataset_info(dataset_code: str):
+    """Get information about a dataset"""
     try:
-        provider = factory.create_provider(dataset_code)
-        return provider.get_api_info()
-
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        factory = INEProviderFactory()
+        dataset_info = factory.get_dataset_info(dataset_code)
+        
+        if not dataset_info:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset '{dataset_code}' not found"
+            )
+        
+        return dataset_info
+        
     except Exception as e:
+        logger.error(f"Error getting dataset info for {dataset_code}: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to get provider info: {str(e)}"
+            detail=f"Internal server error: {str(e)}"
         )

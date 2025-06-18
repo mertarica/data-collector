@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     text?: string
     to?: string
@@ -31,11 +31,6 @@ withDefaults(
 const router = useRouter()
 
 const handleClick = () => {
-  const props = defineProps<{
-    text?: string
-    to?: string
-  }>()
-
   if (props.to) {
     router.push(props.to)
   } else {

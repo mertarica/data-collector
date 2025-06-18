@@ -18,4 +18,4 @@ api_router.include_router(
 @api_router.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "augusta-data-collector"}
+    return {"status": "healthy", "service": "data-collector"}

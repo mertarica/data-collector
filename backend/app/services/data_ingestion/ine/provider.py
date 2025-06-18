@@ -1,34 +1,95 @@
-import httpx
+import json
+import requests
+import logging
 import pandas as pd
-from typing import Dict, Any, List
-from app.services.data_ingestion.base.provider import BaseDataProvider
-from app.core.config import settings
+from typing import Dict, Any, List, Optional
+from datetime import datetime
+from .processor import INEDataProcessor
 
-class INEProvider(BaseDataProvider):
-    """Provider for Spanish National Statistics Institute (INE) data"""
+class INEProvider:
+    """Provider for fetching data from INE (Instituto Nacional de Estadística)"""
     
     def __init__(self, table_id: str, dataset_code: str, dataset_name: str):
-        super().__init__(dataset_code, dataset_name)
         self.table_id = table_id
-        self.api_url = f"{settings.INE_API_BASE_URL}/DATOS_TABLA/{self.table_id}"
+        self.dataset_code = dataset_code
+        self.dataset_name = dataset_name
+        self.base_url = "https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA"
+        self.logger = logging.getLogger(__name__)
+        self.processor = INEDataProcessor()
     
-    async def fetch_raw_data(self) -> List[Dict[str, Any]]:
-        """Fetch raw data from INE API"""
-        print(f"🔗 Fetching from URL: {self.api_url}")  # Debug log
+    def get_data(self) -> Dict[str, Any]:
+        """Get raw data from INE API"""
         try:
-            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-                response = await client.get(self.api_url)
-                print(f"📊 Response status: {response.status_code}")  # Debug log
-                response.raise_for_status()
-                return response.json()
-                
-        except httpx.HTTPStatusError as e:
-            raise Exception(f"INE API Error {e.response.status_code}: {e.response.text}")
-        except httpx.TimeoutException:
-            raise Exception("INE API request timed out")
+            url = f"{self.base_url}/{self.table_id}"
+            self.logger.info(f"Fetching data from INE API: {url}")
+            
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            
+            # Parse JSON response
+            raw_data = response.json()
+            
+            # Count total records
+            record_count = 0
+            if isinstance(raw_data, list):
+                for item in raw_data:
+                    if item.get("Data"):
+                        record_count += len(item["Data"])
+            
+            return {
+                "status": "success",
+                "dataset_info": {
+                    "table_id": self.table_id,
+                    "dataset_code": self.dataset_code,
+                    "dataset_name": self.dataset_name,
+                    "source": "INE",
+                    "data_type": "raw"
+                },
+                "raw_data": raw_data,
+                "record_count": record_count,
+                "retrieved_at": datetime.now().isoformat()
+            }
+            
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Request error: {e}")
+            return {
+                "status": "error",
+                "error": f"Network error: {str(e)}",
+                "dataset_info": {
+                    "table_id": self.table_id,
+                    "dataset_code": self.dataset_code,
+                    "dataset_name": self.dataset_name,
+                    "source": "INE",
+                    "data_type": "raw"
+                }
+            }
+        except json.JSONDecodeError as e:
+            self.logger.error(f"JSON decode error: {e}")
+            return {
+                "status": "error",
+                "error": f"Invalid JSON response: {str(e)}",
+                "dataset_info": {
+                    "table_id": self.table_id,
+                    "dataset_code": self.dataset_code,
+                    "dataset_name": self.dataset_name,
+                    "source": "INE",
+                    "data_type": "raw"
+                }
+            }
         except Exception as e:
-            raise Exception(f"Failed to fetch data from INE: {str(e)}")
-    
+            self.logger.error(f"Unexpected error: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "dataset_info": {
+                    "table_id": self.table_id,
+                    "dataset_code": self.dataset_code,
+                    "dataset_name": self.dataset_name,
+                    "source": "INE",
+                    "data_type": "raw"
+                }
+            }
+
     def parse_to_dataframe(self, raw_data: List[Dict[str, Any]]) -> pd.DataFrame:
         """Parse INE raw data to DataFrame"""
         if not raw_data:
@@ -52,12 +113,56 @@ class INEProvider(BaseDataProvider):
                     })
         
         return pd.DataFrame(records)
-    
-    def get_api_info(self) -> Dict[str, str]:
-        """Get API specific information"""
-        info = self.get_info()
-        info.update({
-            "table_id": self.table_id,
-            "api_url": self.api_url
-        })
-        return info
+
+    def get_processed_data(self) -> Dict[str, Any]:
+        """Get processed data with enriched metadata"""
+        try:
+            # First get raw data
+            raw_response = self.get_data()
+            
+            if raw_response.get("status") == "error":
+                return {
+                    "status": "error",
+                    "error": f"Failed to get raw data: {raw_response.get('error')}",
+                    "dataset_info": {
+                        "table_id": self.table_id,
+                        "dataset_code": self.dataset_code,
+                        "dataset_name": self.dataset_name,
+                        "source": "INE",
+                        "data_type": "processed"
+                    }
+                }
+            
+            raw_data = raw_response.get("raw_data", [])
+            
+            # Process the data
+            processed_data = self.processor.process_raw_data(raw_data)
+            
+            response = {
+                "status": "success",
+                "dataset_info": {
+                    "table_id": self.table_id,
+                    "dataset_code": self.dataset_code,
+                    "dataset_name": self.dataset_name,
+                    "source": "INE",
+                    "data_type": "processed"
+                },
+                "processed_data": processed_data,
+                "retrieved_at": datetime.now().isoformat(),
+            }
+            
+            return response
+            
+        except Exception as e:
+            self.logger.error(f"Error getting processed data: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "dataset_info": {
+                    "table_id": self.table_id,
+                    "dataset_code": self.dataset_code,
+                    "dataset_name": self.dataset_name,
+                    "source": "INE",
+                    "data_type": "processed"
+                }
+            }

@@ -14,12 +14,25 @@ export interface RawDataResponse {
 }
 
 export interface ProcessedDataResponse {
-  codigo: string
-  dataset_name: string
-  record_count: number
+  status: string
+  dataset_info: {
+    table_id: string
+    dataset_code: string
+    dataset_name: string
+    source: string
+    data_type: string
+  }
+  processing_summary: {
+    total_series: number
+    total_data_points: number
+    data_type_distribution: Record<string, number>
+    period_distribution: Record<string, number>
+    metadata_enriched: boolean
+  }
   processed_data: any[]
-  columns: string[]
-  message?: string
+  record_count: number
+  retrieved_at: string
+  metadata_version: string
 }
 
 class ApiService {

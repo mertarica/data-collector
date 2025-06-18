@@ -33,7 +33,7 @@ const router = createRouter({
 
 // Update page title
 router.beforeEach((to) => {
-  document.title = `${to.meta.title} - Augusta Data Collector`
+  document.title = `${to.meta.title} - Data Collector`
 })
 
 export default router
