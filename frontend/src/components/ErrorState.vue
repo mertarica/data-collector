@@ -65,7 +65,7 @@
             <p class="font-medium mb-1">Connection Issue</p>
             <p>
               Please check if the backend service is running on
-              <code class="bg-blue-100 px-1 rounded">localhost:8000</code>
+              <code class="bg-blue-100 px-1 rounded">{{ import.meta.env.VITE_API_BASE_URL }}</code>
             </p>
           </div>
         </div>
