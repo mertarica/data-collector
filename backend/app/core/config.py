@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     PORT: int = 8000
     DEBUG: bool = True
     
-    # CORS Configuration - String olarak alıp split edeceğiz
-    ALLOWED_ORIGINS_STR: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+    # CORS Configuration
+    ALLOWED_ORIGINS_STR: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://augusta-data-collector-frontend.onrender.com"
     
     # INE API Configuration
     INE_API_BASE_URL: str = "https://servicios.ine.es/wstempus/js/ES"
