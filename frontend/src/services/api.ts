@@ -36,7 +36,7 @@ export interface ProcessedDataResponse {
 }
 
 class ApiService {
-  private baseURL = 'http://localhost:8000/api/v1'
+  private baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/'
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
@@ -81,27 +81,27 @@ class ApiService {
   }
 
   async getDatasets(): Promise<Dataset[]> {
-    return this.request<Dataset[]>(`/datasets`)
+    return this.request<Dataset[]>(`v1/datasets`)
   }
 
   async searchDatasets(query: string): Promise<Dataset[]> {
-    return this.request<Dataset[]>(`/datasets/search?q=${encodeURIComponent(query)}`)
+    return this.request<Dataset[]>(`v1/datasets/search?q=${encodeURIComponent(query)}`)
   }
 
   async getDatasetInfo(code: string): Promise<Dataset> {
-    return this.request<Dataset>(`/datasets/${code}`)
+    return this.request<Dataset>(`v1/datasets/${code}`)
   }
 
   async getRawData(code: string): Promise<RawDataResponse> {
-    return this.request<RawDataResponse>(`/data/raw/${code}`)
+    return this.request<RawDataResponse>(`v1/data/raw/${code}`)
   }
 
   async getProcessedData(code: string): Promise<ProcessedDataResponse> {
-    return this.request<ProcessedDataResponse>(`/data/processed/${code}`)
+    return this.request<ProcessedDataResponse>(`v1/data/processed/${code}`)
   }
 
   async getProviderInfo(code: string): Promise<any> {
-    return this.request<any>(`/data/info/${code}`)
+    return this.request<any>(`v1/data/info/${code}`)
   }
 
   async healthCheck(): Promise<{ status: string; service: string }> {

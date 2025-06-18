@@ -67,7 +67,7 @@ A full-stack application for collecting, processing, and visualizing data from t
    python main.py
    ```
 
-The backend will be available at `http://localhost:8000`
+The backend will be available at `https://augusta-data-collector-backend.onrender.com/api/v1/`
 
 ### Frontend Setup
 
