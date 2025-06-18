@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.services.data_collector_service import data_collector_service
+from app.services.ine.data_collector_service import data_collector_service
 import logging
 
 router = APIRouter()

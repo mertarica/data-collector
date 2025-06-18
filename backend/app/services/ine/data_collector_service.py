@@ -2,7 +2,7 @@ import httpx
 import logging
 import asyncio
 from typing import List, Dict, Any
-from app.services.database_service import database_service
+from app.services.ine.database_service import database_service
 
 logger = logging.getLogger(__name__)
 

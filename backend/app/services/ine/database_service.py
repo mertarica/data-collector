@@ -136,5 +136,140 @@ class DatabaseService:
             await conn.execute("UPDATE ine_datasets SET last_modified = $1 WHERE id = $2", timestamp, dataset_id)
         finally:
             await conn.close()
+            
+    async def search_ine_datasets(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Search INE datasets by name or external_id"""
+        conn = await self.get_connection()
+        try:
+            sql = """
+            SELECT * FROM ine_datasets 
+            WHERE (name ILIKE $1 OR external_id ILIKE $1) 
+            AND active = true
+            ORDER BY name
+            LIMIT $2
+            """
+            rows = await conn.fetch(sql, f"%{query}%", limit)
+            return [dict(row) for row in rows]
+        finally:
+            await conn.close()
+
+    async def get_dataset_raw_data(self, dataset_code: str) -> List[Dict[str, Any]]:
+        """Get raw data for a dataset from ine_metadata and ine_data_points tables"""
+        conn = await self.get_connection()
+        try:
+            rows = await conn.fetch("""
+                SELECT 
+                    m.code,
+                    m.name,
+                    m.unit_id,
+                    m.scale_id,
+                    json_agg(
+                        json_build_object(
+                            'value', ROUND(dp.value,2),
+                            'is_secret', dp.is_secret,
+                            'period_id', dp.period_id,
+                            'year', dp.year,
+                            'data_type_id', dp.data_type_id,
+                            'timestamp_ms', dp.timestamp_ms
+                        ) ORDER BY dp.period_index
+                    ) as data_points
+                FROM ine_metadata m
+                LEFT JOIN ine_data_points dp ON m.id = dp.metadata_id
+                WHERE m.dataset_external_id = $1
+                GROUP BY m.id, m.code, m.name, m.unit_id, m.scale_id
+                ORDER BY m.code
+            """, dataset_code)
+            
+            result = []
+            for row in rows:
+                data_item = {
+                    'code': row['code'],
+                    'name': row['name'],
+                    'unit_id': row['unit_id'],
+                    'scale_id': row['scale_id'],
+                    'data_points': row['data_points'] if row['data_points'] and row['data_points'] != [None] else []
+                }
+                result.append(data_item)
+            
+            return result
+        finally:
+            await conn.close()
+
+    async def get_dataset_processed_data(self, dataset_code: str) -> List[Dict[str, Any]]:
+        """Get processed data for a dataset - simplified format"""
+        conn = await self.get_connection()
+        try:
+            rows = await conn.fetch("""
+                SELECT 
+                    m.dataset_external_id,
+                    m.code,
+                    m.name as indicator_name,
+                    m.unit_id,
+                    u.name as unit_description,
+                    e.name as scale_description,
+                    dp.period_index,
+                    f.name,
+                    dp.year,
+                    ROUND(dp.value,2) as value,
+                    CASE 
+                        WHEN dp.is_secret = true THEN 'Confidential — not publicly shown'
+                        ELSE 'Public data — freely available'
+                    END as data_confidentiality,
+                    m.created_at as metadata_created,
+                    m.updated_at as metadata_updated,
+                    dp.created_at as data_point_created
+                FROM ine_data_points dp
+                INNER JOIN ine_metadata m ON dp.metadata_id = m.id
+                LEFT JOIN ine_def_frequencies f ON CAST (dp.period_id AS INTEGER) = f.ref_id
+                LEFT JOIN ine_def_units u ON CAST(m.unit_id AS INTEGER) = u.ref_id
+                LEFT JOIN ine_def_scales e ON CAST(m.scale_id AS INTEGER) = e.ref_id
+                WHERE m.dataset_external_id = $1
+                ORDER BY m.code, dp.year, dp.period_id;
+            """, dataset_code)
+            
+            result = []
+            for row in rows:
+                processed_item = {
+                    'code': row['code'],
+                    'name': row['name'],
+                    'total_data_points': row['total_data_points'],
+                    'year_range': {
+                        'min': row['min_year'],
+                        'max': row['max_year']
+                    },
+                    'statistics': {
+                        'average_value': float(row['avg_value']) if row['avg_value'] else None
+                    },
+                    'last_updated': row['updated_at'].isoformat() if row['updated_at'] else None
+                }
+                result.append(processed_item)
+            
+            return result
+        finally:
+            await conn.close()
+
+    async def get_dataset_metadata(self, dataset_code: str) -> List[Dict[str, Any]]:
+        """Get just metadata information for a dataset"""
+        conn = await self.get_connection()
+        try:
+            rows = await conn.fetch("""
+                SELECT 
+                    m.code,
+                    m.name,
+                    m.unit_id,
+                    m.scale_id,
+                    m.created_at,
+                    m.updated_at,
+                    COUNT(dp.id) as data_points_count
+                FROM ine_metadata m
+                LEFT JOIN ine_data_points dp ON m.id = dp.metadata_id
+                WHERE m.dataset_external_id = $1
+                GROUP BY m.id, m.code, m.name, m.unit_id, m.scale_id, m.created_at, m.updated_at
+                ORDER BY m.code
+            """, dataset_code)
+            
+            return [dict(row) for row in rows]
+        finally:
+            await conn.close()
 
 database_service = DatabaseService()

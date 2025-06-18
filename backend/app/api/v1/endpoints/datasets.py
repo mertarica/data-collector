@@ -1,28 +1,24 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Optional
 from app.models.schemas import DatasetInfo, ErrorResponse
-from app.services.data_ingestion.ine.factory import INEProviderFactory
-from app.api.deps import get_ine_factory
+from app.services.ine.database_service import database_service
 
 router = APIRouter()
 
-
 @router.get("/", response_model=List[DatasetInfo])
-async def get_datasets(
-    factory: INEProviderFactory = Depends(get_ine_factory)
-):
-    """Get all available datasets from INE"""
+async def get_datasets():
+    """Get all available datasets from database"""
     try:
-        datasets = factory.get_available_datasets()
-
+        datasets = await database_service.get_ine_datasets()
+        
         return [
             DatasetInfo(
-                codigo=item.get('Codigo', ''),
-                nombre=item.get('Nombre', ''),
-                cod_ioe=item.get('Cod_IOE'),
-                url=item.get('Url')
+                codigo=dataset.get('external_id', ''),
+                nombre=dataset.get('name', ''),
+                cod_ioe=str(dataset.get('id', '')),
+                url=None
             )
-            for item in datasets
+            for dataset in datasets
         ]
     except Exception as e:
         raise HTTPException(
@@ -30,59 +26,27 @@ async def get_datasets(
             detail=f"Failed to fetch datasets: {str(e)}"
         )
 
-
 @router.get("/search", response_model=List[DatasetInfo])
 async def search_datasets(
     q: str = Query(..., min_length=2, description="Search query"),
-    limit: int = Query(
-        20, ge=1, le=100, description="Number of results to return"),
-    factory: INEProviderFactory = Depends(get_ine_factory)
+    limit: int = Query(20, ge=1, le=100, description="Number of results to return")
 ):
-    """Search datasets by name or code"""
+    """Search datasets by name or code in database"""
     try:
-        results = factory.search_datasets(q, limit=limit)
-
+        # Database service'e search metodu ekleyelim
+        datasets = await database_service.search_ine_datasets(q, limit)
+        
         return [
             DatasetInfo(
-                codigo=item.get('Codigo', ''),
-                nombre=item.get('Nombre', ''),
-                cod_ioe=item.get('Cod_IOE'),
-                url=item.get('Url')
+                codigo=dataset.get('external_id', ''),
+                nombre=dataset.get('name', ''),
+                cod_ioe=str(dataset.get('id', '')),
+                url=None
             )
-            for item in results
+            for dataset in datasets
         ]
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Search failed: {str(e)}"
-        )
-
-
-@router.get("/{dataset_code}", response_model=DatasetInfo)
-async def get_dataset_info(
-    dataset_code: str,
-    factory: INEProviderFactory = Depends(get_ine_factory)
-):
-    """Get information about a specific dataset"""
-    try:
-        dataset_info = factory.get_dataset_info(dataset_code)
-
-        if not dataset_info:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Dataset '{dataset_code}' not found"
-            )
-
-        return DatasetInfo(
-            codigo=dataset_info.get('Codigo', ''),
-            nombre=dataset_info.get('Nombre', ''),
-            cod_ioe=dataset_info.get('Cod_IOE'),
-            url=dataset_info.get('Url')
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get dataset info: {str(e)}"
         )
