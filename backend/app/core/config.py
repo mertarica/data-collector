@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     STORAGE_PATH: str = "./storage"
     
     # Database Configuration
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    DB_CONNECTION_STRING: str = os.getenv("DB_CONNECTION_STRING")
     
     class Config:
         env_file = ".env"

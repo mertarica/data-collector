@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class DatabaseService:
     def __init__(self):
-        self.connection_url = settings.DATABASE_URL
+        self.connection_url = settings.DB_CONNECTION_STRING
     
     async def get_connection(self):
         return await asyncpg.connect(self.connection_url)
