@@ -190,8 +190,11 @@ function isValidDataPoint(point: any): boolean {
 
 function parseDate(dateStr: string): Date {
   if (typeof dateStr === 'string' && dateStr.startsWith('/Date(')) {
-    const timestamp = parseInt(dateStr.match(/\d+/)[0])
-    return new Date(timestamp)
+    const dateMatch = dateStr.match(/\/Date\((\d+)\)/)
+    if (dateMatch) {
+      const timestamp = parseInt(dateMatch[1])
+      return new Date(timestamp)
+    }
   }
   return new Date(dateStr)
 }

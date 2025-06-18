@@ -31,19 +31,46 @@ export const useProvidersStore = defineStore('providers', () => {
     },
   ])
 
+  const selectedProvider = ref<string>('all')
+
+  // Mock data for dataset counts - replace with real data later
+  const datasetCountByProvider = ref<Record<string, number>>({
+    ine: 150,
+    eurostat: 0,
+    worldbank: 0,
+  })
+
   // Getters
   const enabledProviders = computed(() => providers.value.filter((p) => p.enabled))
+
+  const totalDatasets = computed(() => {
+    return Object.values(datasetCountByProvider.value).reduce((sum, count) => sum + count, 0)
+  })
 
   const getProviderById = (id: string) => {
     return providers.value.find((p) => p.id === id)
   }
 
+  // Actions
+  const setSelectedProvider = (providerId: string) => {
+    selectedProvider.value = providerId
+  }
+
+  const updateDatasetCount = (providerId: string, count: number) => {
+    datasetCountByProvider.value[providerId] = count
+  }
+
   return {
     // State
     providers,
+    selectedProvider,
+    datasetCountByProvider,
     // Getters
     enabledProviders,
+    totalDatasets,
     // Actions
     getProviderById,
+    setSelectedProvider,
+    updateDatasetCount,
   }
 })
