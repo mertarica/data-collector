@@ -9,7 +9,7 @@ class DatasetInfo(BaseModel):
     dataset_name: Optional[str] = Field(None, description="Dataset description")
 
 class DataResponse(BaseModel):
-    codigo: str
+    code: str
     dataset_name: str
     record_count: int
     success: bool = True
